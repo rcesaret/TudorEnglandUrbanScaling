@@ -20,6 +20,9 @@
 # RStudio files
 .Rproj.user/
 
+# R Project for repo
+TudorEnglandUrbanScaling.Rproj
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
