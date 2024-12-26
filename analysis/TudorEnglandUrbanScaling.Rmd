@@ -1,0 +1,489 @@
+---
+title: "Untitled"
+author: "Rudolf Cesaretti"
+date: "2019-08-09"
+output: html_document
+---
+
+Please direct any questions and comments to Rudolf Cesaretti (rcesaret@asu.edu)
+
+Analyses in this 'Data Replication' script were performed in R versions 3.4.3 (2017-11-30) and 3.6.0 (2019-04-26). R-Studio is ideal for viewing and manipulating this file. 
+
+The subsections of this script, indicated by triple-pound-sign comment lines, specify which subsections they correspond to in the main text (e.g. "4.1 Data Quality") and in the online Appendix (e.g. "A1.1 Distributional Analysis")
+
+The additional R packages required in each section are indicated at the top of each section. To download the requisite packages to your library, simply un-comment-out the function "install.packages()", and make sure you have a secure connection to the internet.
+
+This file requires that the working-directory be set to a local folder that includes "main_dataset.csv", "add_taxpayers.csv", "WCS.csv", "resid_coords_geog.csv", and "TudorCounties.csv" which are included in the online supplementary materials
+
+Commands to export figures (as .tif files) and tables (as .csv files) have also been commented-out
+
+# Preliminaries
+
+```{r}
+# clear workspace
+rm(list = ls())
+
+# set working directory to local folder containing .csv files included in the supplementary materials 
+setwd("C:/Users/TJ McMote/Desktop/Submission/Resubmission") #C:/Users/TJ McMote/Desktop/Submission/Resubmission
+
+# Upload datasets from working directory
+main_dataset <- read.csv(file="main_dataset.csv", header=TRUE, sep=",")
+add_taxpayers <- read.csv(file="add_taxpayers.csv", header=TRUE, sep=",")
+WCS <- read.csv(file="WCS.csv", header=TRUE, sep=",")
+resid_coords_geog <- read.csv("resid_coords_geog.csv", header = T)
+TC <- read.csv(file="TudorCounties.csv", header=TRUE, sep=",")
+```
+
+## Analysis & Figures
+
+
+### 4.1 Data Quality and A1.1 Distributional Analysis
+
+
+
+
+
+#### Figure A1: Histograms of the Lay Subsidy data (n = 93)
+
+```{r}
+#install.packages("MASS")
+#install.packages("NSM3")
+library(MASS)
+library(NSM3)
+```
+
+
+```{r}
+
+#tiff(filename = "Fig_A1_Hists.tif", width = 9, height = 4, units = "in", res=300,  compression = "lzw", bg = "white", family = "", restoreConsole = TRUE, type ="windows")
+par(mfrow = c(1, 2))
+
+# Figure A1a
+FigA1a <- hist(main_dataset$Log_Tax, breaks=seq(2,7,0.2), plot = FALSE)
+pos <- pretty(FigA1a$density, n = 6)
+freq <- round(pos * length(main_dataset$Log_Tax) * with(FigA1a, breaks[2] - breaks[1]))
+new.mai <- old.mai <- par("mai")
+new.mai[4] <- old.mai[2]
+par(mai = new.mai)
+graphics:::plot.histogram(FigA1a, freq = FALSE, col="gray70", family="sans", main="(a)", cex.main=2, 
+                          font.main=2, font.lab=2, xlab = "Log Tax (£)", ylab="Frequency",
+                          border="black", yaxt='n')
+Axis(side = 2, at = pos, labels = freq)
+Axis(side = 4, at = pos, labels = pos)
+mtext("Density           ", side = 4, line = 3, family="sans", font=2)
+polygon(density(main_dataset$Log_Tax), col = rgb(0, 0, 1, 0.3))
+fit<-fitdistr(main_dataset$Log_Tax,"normal")$estimate
+xfit<-seq((min(main_dataset$Log_Tax)-1),(max(main_dataset$Log_Tax)+1),length=50) 
+yfit<-dnorm(xfit,fit[1],fit[2])
+lines(xfit, yfit, col="red", lwd=2)
+
+# Figure A1b
+FigA1b <- hist(main_dataset$Log_Taxpayers, breaks=seq(4.5,7.5,0.2), plot = FALSE)
+pos <- pretty(FigA1b$density, n = 6)
+freq <- round(pos * length(main_dataset$Log_Taxpayers) * with(FigA1b, breaks[2] - breaks[1]))
+new.mai <- old.mai <- par("mai")
+new.mai[4] <- old.mai[2]
+par(mai = new.mai)
+graphics:::plot.histogram(FigA1b, freq = FALSE, col="gray70", family="sans", main="(b)", cex.main=2, 
+                          font.main=2, font.lab=2, xlab = "Log Taxpayers", ylab="          Frequency",
+                          border="black", yaxt='n')
+Axis(side = 2, at = pos, labels = freq)
+Axis(side = 4, at = pos, labels = pos)
+mtext("Density", side = 4, line = 3, family="sans", font=2)
+polygon(density(main_dataset$Log_Taxpayers), col = rgb(0, 0, 1, 0.3))
+fit<-fitdistr(main_dataset$Log_Taxpayers,"normal")$estimate
+xfit<-seq((min(main_dataset$Log_Taxpayers)-2),(max(main_dataset$Log_Taxpayers)+1),length=50) 
+yfit<-dnorm(xfit,fit[1],fit[2])
+lines(xfit, yfit, col="red", lwd=2)
+
+
+
+
+```
+
+
+
+```{r}
+# reset graphics
+par(mai = old.mai)
+
+#dev.off()
+par(mfrow = c(1, 1))
+```
+
+
+#### Kolmogorov-Smirnov test for Log Tax data (n = 93)
+
+```{r}
+fit<-fitdistr(main_dataset$Log_Tax,"normal")$estimate
+ks.test(main_dataset$Log_Tax, "pnorm",fit[1],fit[2])
+```
+
+#### Kolmogorov-Smirnov test for Log Taxpayers data (n = 93)
+
+```{r}
+fit<-fitdistr(main_dataset$Log_Taxpayers,"normal")$estimate
+ks.test(main_dataset$Log_Taxpayers, "pnorm",fit[1],fit[2])
+```
+
+#### Figure A2: Kolmogorov-Smirnov Test Plots with 95% C.I.s
+
+```{r}
+#tiff(filename = "Fig_A2_KS.tif", width = 8, height = 4, units = "in", res=300,  compression = "lzw", bg = "white", family = "", restoreConsole = TRUE, type ="windows")
+par(mfrow = c(1, 2))
+
+#Figure A2a
+ecdf.ks.CI(main_dataset$Log_Tax, family="sans", main= "(a)", cex.main=2, font.main=2, font.lab=2, xlab="Log Tax (£)", ylab="ECDF(Log Tax)")
+fit<-fitdistr(main_dataset$Log_Tax,"normal")$estimate
+Norm1 <- rnorm(10000, fit[1],fit[2])
+lines(ecdf(Norm1), do.points = FALSE, verticals=T, lwd=2, col="blue")
+
+#Figure A2b
+ecdf.ks.CI(main_dataset$Log_Taxpayers, main= "(b)", cex.main=2, font.main=2, font.lab=2, xlab="Log Taxpayers", ylab="ECDF(Log Taxpayers)")
+fit<-fitdistr(main_dataset$Log_Taxpayers,"normal")$estimate
+Norm2 <- rnorm(10000, fit[1],fit[2])
+lines(ecdf(Norm2), do.points = FALSE, verticals=T, lwd=2, col="blue")
+
+# reset graphics
+#dev.off()
+par(mfrow = c(1, 1))
+```
+
+#### Figure A3: Zipfian Tail of Taxpayer Count Log-Log Rank-Size Plot
+
+```{r}
+#tiff(filename = "Fig_A3_Zipf.tif", width = 5, height = 5, units = "in", res=300,  compression = "lzw", bg = "white", family = "", restoreConsole = TRUE, type ="windows")
+plot(main_dataset$Log_Rank, main_dataset$Log_Taxpayers, main= "Zipfian Taxpayers Tail", cex.main=2, pch=16, font.main=2, font.lab=2, xlab="Log Rank", ylab="Log Taxpayers")
+abline(a=max(main_dataset$Log_Taxpayers), b=-0.35, col="red", lwd=2.5)
+text(3, 7.15, "Ln(Taxpayers) = 7.27 - 0.35(Ln(Rank))", cex = 0.8, font=2)
+#dev.off()
+```
+
+
+
+#### Kolmogorov-Smirnov test for Log Taxpayers (n = 134) using expanded sample of towns with at least 50 taxpayers 
+
+```{r}
+fit<-fitdistr(add_taxpayers$Log_Taxpayers,"normal")$estimate
+ks.test(add_taxpayers$Log_Taxpayers, "pnorm",fit[1],fit[2])
+```
+
+
+
+#### Figure A4: Analysis of the Expanded 1524/5 Lay Subsidy Taxpayer Counts Dataset (expanded sample of towns with at least 50 taxpayers) 
+
+
+
+```{r}
+
+#tiff(filename = "Fig_A4_HistKS.tif", width = 8.5, height = 4, units = "in", res=300,  compression = "lzw", bg = "white", family = "", restoreConsole = TRUE, type ="windows")
+par(mfrow = c(1, 2))
+
+# Figure A4a
+FigA4a <- hist(add_taxpayers$Log_Taxpayers, breaks=seq(3,8,0.2), plot = FALSE)
+pos <- pretty(FigA4a$density, n = 6)
+freq <- round(pos * length(add_taxpayers$Log_Taxpayers) * with(FigA4a, breaks[2] - breaks[1]))
+new.mai <- old.mai <- par("mai")
+new.mai[4] <- old.mai[2]
+par(mai = new.mai)
+graphics:::plot.histogram(FigA4a, freq = FALSE, col="gray70", family="sans", main="(a)", cex.main=2, 
+                          font.main=2, font.lab=2, xlab = "Log Taxpayers", ylab="Frequency",
+                          border="black", yaxt='n')
+Axis(side = 2, at = pos, labels = freq)
+Axis(side = 4, at = pos, labels = pos)
+mtext("Density           ", side = 4, line = 3, family="sans", font=2)
+polygon(density(add_taxpayers$Log_Taxpayers), col = rgb(0, 0, 1, 0.3))
+fit<-fitdistr(add_taxpayers$Log_Taxpayers,"normal")$estimate
+xfit<-seq((min(add_taxpayers$Log_Taxpayers)-1),(max(add_taxpayers$Log_Taxpayers)+1),length=50) 
+yfit<-dnorm(xfit,fit[1],fit[2])
+lines(xfit, yfit, col="red", lwd=2)
+par(mai = old.mai)
+
+# Figure A4b
+ecdf.ks.CI(add_taxpayers$Log_Taxpayers, main= "(b)", cex.main=2, font.main=2, font.lab=2, xlab="Log Taxpayers", ylab="ECDF(Log Taxpayers)")
+fit<-fitdistr(add_taxpayers$Log_Taxpayers,"normal")$estimate
+Norm3 <- rnorm(10000, fit[1],fit[2])
+lines(ecdf(Norm3), do.points = FALSE, verticals=T, lwd=2, col="blue")
+
+# reset graphics
+#dev.off()
+par(mai = old.mai)
+par(mfrow = c(1, 1))
+```
+
+
+
+
+### 5.1. Results by Error-Type Subset
+
+```{r}
+library(zoo)
+library(lmtest)
+library(sandwich)
+library(ggplot2)
+library(devtools)
+library(broom)
+library(plyr)
+library(MASS)
+library(NSM3)
+#install.packages("zoo")
+#install.packages("lmtest")
+#install.packages("sandwich")
+#install.packages("ggplot2")
+#install.packages("devtools")
+#install.packages("broom")
+#install.packages("plyr")
+#install.packages("MASS")
+#install.packages("NSM3")
+```
+
+
+#### Regreesion Results Table for all Error-Type Subsets
+
+```{r}
+
+out <- data.frame()
+for (i in 1:4){
+		EE = matrix( c(2, 2, 2, 1, 1, 2, 1, 1), nrow=2, ncol=4)
+		x.sub <- subset(main_dataset, Problem < EE[1,i] & Rural < EE[2,i])
+		x <- x.sub$Log_Taxpayers
+		y <- x.sub$Log_Tax
+		fm <- lm(y ~ x)
+		tidy_fm <- tidy(fm)
+		coeftest <- coeftest(fm, vcov = vcovHC(fm, "HC1"))
+		tidy_coeftest <- tidy(coeftest)
+		tidy_coeftest$term[1] <- "alpha"
+		tidy_coeftest$term[2] <- "beta"
+		tidy_coeftest$param <- c(1, 2)
+		tidy_coeftest$estimate[1] <- exp(tidy_coeftest$estimate[1])
+		if (EE[1,i] == 2 & EE[2,i] == 2){
+			tidy_coeftest$analysis <- c("All", "All")
+			tidy_coeftest$analysis_num <- c(1, 1)
+		}
+		if (EE[1,i] == 2 & EE[2,i] == 1){
+			tidy_coeftest$analysis <- c("No Rural", "No Rural")
+			tidy_coeftest$analysis_num <- c(2, 2)
+		}
+		if (EE[1,i] == 1 & EE[2,i] == 2){
+			tidy_coeftest$analysis <- c("No Problem", "No Problem")
+			tidy_coeftest$analysis_num <- c(3, 3)
+		}
+		if (EE[1,i] == 1 & EE[2,i] == 1){
+			tidy_coeftest$analysis <- c("No Rural, No Problem", "No Rural, No Problem")
+			tidy_coeftest$analysis_num <- c(4, 4)
+		}
+		tidy_coeftest$n <- c(length(x), length(x))
+		tidy_coeftest$rsquared <- c(summary(fm)$r.squared, summary(fm)$r.squared)
+		#tidy_coeftest$dataset_num <- c(1, 1)
+		
+		#set HC1 covariance matrix as an object
+		Cov<-vcovHC(fm, "HC1")
+
+		#calculate and report 95% confidence interval using HC1 covariance matrix
+		tt <-qt(c(0.025,0.975),summary(fm)$df[2])
+		se <- sqrt(diag(Cov))
+		ci <-coef(fm) + se %o% tt
+
+		tidy_coeftest$ci0.025 <- c(exp(ci[1,1]), ci[2,1])
+		tidy_coeftest$ci0.975 <- c(exp(ci[1,2]), ci[2,2])
+		out=rbind(out,tidy_coeftest)
+}
+```
+
+
+
+```{r}
+
+## Table (dataframe) of unsorted results
+View(out)
+
+analysis_num <- out$analysis_num[c(TRUE, FALSE)]
+Subset <- out$analysis[c(TRUE, FALSE)]
+n <- out$n[c(TRUE, FALSE)]
+R_squared <- out$rsquared[c(TRUE, FALSE)]
+alpha_estimate <- out$estimate[c(TRUE, FALSE)]
+alpha_ci_0.025 <- out$ci0.025[c(TRUE, FALSE)]
+alpha_ci_0.975 <- out$ci0.975[c(TRUE, FALSE)]
+beta_estimate <- out$estimate[c(FALSE, TRUE)]
+beta_ci_0.025 <- out$ci0.025[c(FALSE, TRUE)]
+beta_ci_0.975 <- out$ci0.975[c(FALSE, TRUE)]
+
+```
+
+
+
+#### Table 1 (dataframe): Scaling of 1524/5 Tax Paid with Taxpayer Count (in "5.1. Results by Error-Type Subset" from Main Text)
+
+
+```{r}
+Table1 <- data.frame(analysis_num, Subset, n, R_squared, beta_estimate, beta_ci_0.025, beta_ci_0.975, alpha_estimate, alpha_ci_0.025, alpha_ci_0.975)
+View(Table1)
+#write.csv(Table1, file = "Scaling_Results_Table_Output.csv")
+```
+
+
+
+#### Figure 1. Log-linear Regression Plot of 1524/5 Tax ~ Taxpayer scaling relation for all towns (n = 93) 
+
+```{r}
+
+#tiff(filename = "Fig_1_ScalingPlot.tif", width = 6, height = 6, units = "in", res=300,  compression = "lzw", bg = "white", family = "", restoreConsole = TRUE, type ="windows")
+
+ggplot(main_dataset, aes(x=main_dataset$Log_Taxpayers, y=main_dataset$Log_Tax)) +
+geom_point(size=3, aes( colour = factor(main_dataset$GroupN), shape = factor(main_dataset$GroupN))) + 
+scale_color_manual(name ="Error Type Subsets",values=c("grey60", "black","grey40", "grey50")) +
+scale_shape_manual(name ="Error Type Subsets",values=c(18, 16, 15, 17)) +
+geom_smooth(fullrange=TRUE, method =lm, se=TRUE, colour="red", size=1) +
+scale_x_continuous(expand=c(0,0), limits=c(4.5,10)) +
+scale_y_continuous(expand=c(0,0), limits=c(2,10)) +
+coord_cartesian(xlim=c(4.5,8), ylim=c(2,7.5)) +
+geom_abline(mapping = NULL, data = NULL, slope = 1.2695, intercept = -2.982366, na.rm = FALSE, show.legend = NA, colour="red", size=1) + 
+geom_abline(mapping = NULL, data = NULL, slope = 1, intercept = -1.4, na.rm = FALSE, show.legend = NA, colour="black", size=1) +
+geom_abline(mapping = NULL, data = NULL, slope = 1.15, intercept = -2.28, na.rm = FALSE, show.legend = NA, colour="gold1", size=1) +
+xlab("Log Taxpayers, 1524/5") +
+ylab("Log Tax (£), 1524/5") +
+theme_bw() +
+theme(legend.justification=c(1,0), legend.position=c(0.9,0.1)) +
+theme(legend.box.background = element_rect(colour = "black"), panel.border = element_rect(colour = "black", fill=NA), legend.background = element_blank()) +
+theme(axis.text = element_text(size = 12, color="black")) +
+theme(axis.title.y = element_text(size = 14, face = "bold")) +
+theme(axis.title.x = element_text(size = 14, face = "bold")) +
+theme(legend.title = element_text(face="bold"))
+
+#dev.off()
+
+```
+
+
+#### Gaussian Residuals Cross-Checks
+
+
+##### Residuals Tests for All Cases (n = 93)
+
+```{r}
+##### Residuals Tests for All Cases (n = 93) ######
+
+fm <- lm(main_dataset$Log_Tax ~ main_dataset$Log_Taxpayers)
+fm.resid <- resid(fm)
+
+shapiro.test(fm.resid)
+
+fit<-fitdistr(fm.resid,"normal")$estimate
+ks.test(fm.resid, "pnorm",fit[1],fit[2])
+
+
+```
+
+##### Residuals Histogram for full dataset
+
+```{r}
+#tiff(filename = "Residuals_Gaussian_distrib", width = 9, height = 5, units = "in", res=300,  compression = "lzw", bg = "white", family = "", restoreConsole = TRUE, type ="windows")
+par(mfrow = c(1, 2))
+
+# Residuals Histogram for full dataset
+Resid1 <- hist(fm.resid, breaks=seq(-1.5,1.5,0.2), plot = FALSE)
+pos <- pretty(Resid1$density, n = 6)
+freq <- round(pos * length(fm.resid) * with(Resid1, breaks[2] - breaks[1]))
+new.mai <- old.mai <- par("mai")
+new.mai[4] <- old.mai[2]
+par(mai = new.mai)
+graphics:::plot.histogram(Resid1, freq = FALSE, col="gray70", family="sans", main="(a)", cex.main=2, 
+                          font.main=2, font.lab=2, xlab = "Residuals", ylab="Frequency",
+                          border="black", yaxt='n')
+Axis(side = 2, at = pos, labels = freq)
+Axis(side = 4, at = pos, labels = pos)
+mtext("Density           ", side = 4, line = 3, family="sans", font=2)
+polygon(density(fm.resid), col = rgb(0, 0, 1, 0.3))
+fit<-fitdistr(fm.resid,"normal")$estimate
+xfit<-seq((min(fm.resid)-1),(max(fm.resid)+1),length=50) 
+yfit<-dnorm(xfit,fit[1],fit[2])
+lines(xfit, yfit, col="red", lwd=2)
+par(mai = old.mai)
+
+# Figure A4b
+ecdf.ks.CI(fm.resid, main= "(b)", cex.main=2, font.main=2, font.lab=2, xlab="Residuals", ylab="ECDF(Residuals)")
+fit<-fitdistr(fm.resid,"normal")$estimate
+Norm3 <- rnorm(10000, fit[1],fit[2])
+lines(ecdf(Norm3), do.points = FALSE, verticals=T, lwd=2, col="blue")
+
+# reset graphics
+#dev.off()
+par(mai = old.mai)
+par(mfrow = c(1, 1))
+```
+
+
+##### Residuals Tests for No Rural/Municipal Subset (n = 68)
+
+
+```{r}
+
+NoRur <- subset(main_dataset, Problem < 2 & Rural < 1)
+
+fm.NR <- lm(NoRur$Log_Tax ~ NoRur$Log_Taxpayers)
+fm.NR.resid <- resid(fm.NR)
+
+shapiro.test(fm.NR.resid)
+
+fit<-fitdistr(fm.NR.resid,"normal")$estimate
+ks.test(fm.NR.resid, "pnorm",fit[1],fit[2])
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
