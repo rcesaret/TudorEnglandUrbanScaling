@@ -1,14 +1,12 @@
 ---
 title: "Tudor England Urban Scaling"
-subtitle: "Part 1"
+subtitle: "Figures from the paper"
 author: "Rudolf Cesaretti"
 date: "2019-08-09"
 output:
-  html_document:
+  html_document: 
     toc: true
     toc_float: true
-    toc_depth: 3
-    number_sections: false
     code_folding: show
     keep_md: true
     highlight: tango
@@ -29,43 +27,18 @@ Commands to export figures (as .tif files) and tables (as .csv files) have also 
 
 ## Preliminaries
 
-### Clear Workspace
+```{r rmd_setup, echo = FALSE, warning = FALSE, message = FALSE}
+#rm(list = ls()) # clear workspace
 
-```{r}
-# clear workspace
-rm(list = ls())
+# Ensure that the working directory is set to the root of the project
+library(rprojroot)
+knitr::opts_knit$set(root.dir = find_rstudio_root_file())
 ```
-
-```{r}
-knitr::opts_knit$set(root.dir = "C:/Users/TJ McMote/ASU Dropbox/Rudolf Cesaretti/GitHubRepos/TudorEnglandUrbanScaling")
-
-```
-
-
-### Set Project Working Directory Folders
-
-```{r}
-# Use an environment to store the directory paths
-WD <- new.env()
-
-# SET YOUR LOCAL DIRECTORY LOCATION HERE:
-WD$dir <- "C:/Users/TJ McMote/ASU Dropbox/Rudolf Cesaretti/GitHubRepos/TudorEnglandUrbanScaling/"
-# Adjust the directory path as per your system
-
-# Creating subdirectories using paste0 function
-WD$analysis <- paste0(WD$dir, "analysis/")
-WD$data_r <- paste0(WD$dir, "data/raw/")
-WD$data_p <- paste0(WD$dir, "data/processed/")
-WD$figs <- paste0(WD$dir, "figures/")
-WD$funcs <- paste0(WD$dir, "R/")
-```
-
-
 
 
 ### Load Custom R Functions
 
-```{r}
+```{r custom_funcs, echo = TRUE, warning = FALSE, message = FALSE}
 #Read in custom R functions located in the WD$R directory folder
 
 # Custom function R file names
@@ -74,73 +47,49 @@ functions <- c("ks_test_tidy.R", "histogram_density.R",
                "ggplot_ks_ci.R") 
 
 invisible(lapply(functions, function(filename) {
-  source(file.path(WD$funcs, filename))
+  source(file.path("R", filename))
 }))
 
 rm(functions) # Remove the vector of function filenames from the environment
 ```
 
 
-
-
-
 ### Load Required Packages
 
-```{r}
-# List of required packages
-required_pkgs <- c("knitr", "MASS", "NSM3")
-
-# Check which packages are not yet installed
-to_install <- required_pkgs[!required_pkgs %in% installed.packages()]
-
-# Install the missing packages
-if (length(to_install) > 0) {
-  install.packages(to_install)
-}
-
-# Load all required packages
-invisible(sapply(required_pkgs, requireNamespace))
-
-# Clean up the environment
-rm(required_pkgs, to_install)
+```{r load_packages, echo = TRUE, warning = FALSE, message = FALSE}
+# Load required packages
+library(MASS)
+library(NSM3)
+library(gt)
+library(dplyr)
+library(ggplot2)
 ```
-
-
 
 
 ### Load Data
 
-```{r}
+```{r load_data, echo = TRUE, warning = FALSE, message = FALSE}
+
 # Upload datasets from working directory
-main_dataset <- read.csv(file = paste0(WD$data_r, "main_dataset.csv"), header=TRUE, sep=",")
+main_dataset <- read.csv(file = "data/raw/main_dataset.csv", header=TRUE, sep=",")
 
-add_taxpayers <- read.csv(file = paste0(WD$data_r, "add_taxpayers.csv"), header=TRUE, sep=",")
-
-```
-
-
-
-```{r}
-main_dataset$Log_Tax
-library(ggplot2)
-ggKSCI(main_dataset$Log_Tax)
-gg_plot_ks_ci(main_dataset$Log_Tax)
-ggplot_ks_ci(main_dataset$Log_Tax)
-
-ggplot_ks_ci(main_dataset$Log_Tax, )
+add_taxpayers <- read.csv(file = "data/raw/add_taxpayers.csv", header=TRUE, sep=",")
 
 ```
+
+
 
 
 ## 4.1 Data Quality and A1.1 Distributional Analysis
 
 
-#### Figure A1: Histograms of the Lay Subsidy data (n = 93)
+### Figure A1: Histograms of the Lay Subsidy data (n = 93)
 
-```{r}
+```{r save_FigA1, eval = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
+
 # Define output file
 png(
-  filename = paste0(WD$figs, "Fig_A1_Hists.png"),
+  filename = "figures/Fig_A1_Hists.png",
   width = 9,
   height = 4,
   units = "in",
@@ -182,32 +131,19 @@ par(mfrow = c(1, 1))
 
 ```
 
-
-
-#### Kolmogorov-Smirnov test for Log Tax data (n = 93)
-
-```{r}
-
-knitr::include_graphics(paste0(WD$figs, "Fig_A1_Hists.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
-
-x <- ks_test_tidy(main_dataset, "Log_Tax", signif_digits = 3)
-knitr::kable(x, caption = "Kolmogorov-Smirnov test for Log Tax data (n = 93)")
-
-rm(x)
-
+```{r plot_FigA1, echo = FALSE, warning = FALSE, message = FALSE}
+# Display Plot
+knitr::include_graphics("figures/Fig_A1_Hists.png")
 ```
 
 
 
+### Figure A2: Kolmogorov-Smirnov Test Plots with 95% C.I.s
 
-
-#### Figure A2: Kolmogorov-Smirnov Test Plots with 95% C.I.s
-
-```{r}
+```{r save_FigA2, eval = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
 # Define output file
 png(
-  filename = paste0(WD$figs, "Fig_A2_KS.png"),
+  filename = "figures/Fig_A2_KS.png",
   width = 8,
   height = 4,
   units = "in",
@@ -245,23 +181,24 @@ dev.off()
 # Reset plotting parameters
 par(mfrow = c(1, 1))
 
-knitr::include_graphics(paste0(WD$figs, "Fig_A2_KS.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
+```
 
+```{r plot_FigA2, echo = FALSE, warning = FALSE, message = FALSE}
+# Display Plot
+knitr::include_graphics("figures/Fig_A2_KS.png")
 ```
 
 
 
+### Figure A3: Zipfian Tail of Taxpayer Count Log-Log Rank-Size Plot
 
 
-#### Figure A3: Zipfian Tail of Taxpayer Count Log-Log Rank-Size Plot
-
-```{r}
+```{r save_FigA3, eval = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
 
 png(
-  filename = paste0(WD$figs, "Fig_A3_Zipf.png"),
+  filename = "figures/Fig_A3_Zipf.png",
   width = 5,
-  height = 5,
+  height = 4,
   units = "in",
   res = 300,
   bg = "white",
@@ -270,52 +207,54 @@ png(
   type = "windows"
 )
 
-plot(
-  main_dataset$Log_Rank,
-  main_dataset$Log_Taxpayers,
-  main = "Zipfian Taxpayers Tail",
-  cex.main = 2,
-  pch = 16,
-  font.main = 2,
-  font.lab = 2,
-  xlab = "Log Rank",
-  ylab = "Log Taxpayers"
-)
-
-abline(
-  a = max(main_dataset$Log_Taxpayers),
-  b = -0.35,
-  col = "red",
-  lwd = 2.5
-)
-
-text(3,
-     7.15,
-     "Ln(Taxpayers) = 7.27 - 0.35(Ln(Rank))",
-     cex = 0.8,
-     font = 2)
+# Create the ggplot
+ggplot(main_dataset, aes(x = Log_Rank, y = Log_Taxpayers)) +
+  # Add the red regression line with specified intercept and slope
+  geom_abline(intercept = max(main_dataset$Log_Taxpayers),
+    slope = -0.35, color = "red", size = 1) +
+  # Add scatter points with solid circles
+  geom_point(shape = 16, size = 1.5) +
+  # Add plot title and axis labels
+  labs(title = "Taxpayers Zipfian Tail", x = "Log Rank", y = "Log Taxpayers") +
+  # Add text annotation for the regression equation
+  annotate("text", x = 1.5, y = 5.85, 
+           label = "Log(Taxpayers) = 7.27 - 0.35(Log(Rank))",
+           size = 3.5, fontface = "bold") +
+  theme_minimal()+
+  # Customize theme for title and axis labels
+  theme(
+    plot.title = element_text(
+      size = 18,        # Adjust size for the main title
+      face = "bold",
+      hjust = 0.5       # Center the title
+    ),
+    axis.title = element_text(
+      face = "bold",
+      size = 12         # Adjust size for axis labels
+    )
+  )
 
 dev.off()
 
-
-knitr::include_graphics(paste0(WD$figs, "Fig_A3_Zipf.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
 ```
 
 
 
+```{r plot_FigA3, echo = FALSE, warning = FALSE, message = FALSE, fig.width = 4, fig.height = 3}
+
+# Display Plot
+knitr::include_graphics("figures/Fig_A3_Zipf.png")
+
+```
 
 
+### Figure A4: Analysis of the Expanded 1524/5 Lay Subsidy Taxpayer Counts Dataset (expanded sample of towns with at least 50 taxpayers) 
 
-
-#### Figure A4: Analysis of the Expanded 1524/5 Lay Subsidy Taxpayer Counts Dataset (expanded sample of towns with at least 50 taxpayers) 
-
-
-```{r}
+```{r save_FigA4, eval = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
 
 # Define output file
 png(
-  filename = paste0(WD$figs, "Fig_A4_HistKS.png"),
+  filename = "figures/Fig_A4_HistKS.png",
   width = 8.5,
   height = 4,
   units = "in",
@@ -354,26 +293,10 @@ dev.off()
 # Reset plotting parameters
 par(mfrow = c(1, 1))
 
-
 ```
 
-
-
-#### Kolmogorov-Smirnov test for Log Taxpayers (n = 134) using expanded sample of towns with at least 50 taxpayers 
-
-```{r}
-
-knitr::include_graphics(paste0(WD$figs, "Fig_A4_HistKS.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
-
-x <- ks_test_tidy(add_taxpayers, "Log_Taxpayers", signif_digits = 3)
-knitr::kable(x, caption = "Kolmogorov-Smirnov test for Log Taxpayers (n = 134) using expanded sample of towns with at least 50 taxpayers")
-
-rm(x)
-
+```{r plot_FigA4, echo = FALSE, warning = FALSE, message = FALSE}
+# Display Plot
+knitr::include_graphics("figures/Fig_A4_HistKS.png")
 ```
-
-
-
-
 

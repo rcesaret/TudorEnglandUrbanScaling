@@ -19,55 +19,13 @@ Commands to export figures (as .png files) and tables (as .csv files) have also 
 
 ## Preliminaries
 
-### Clear Workspace
-
 ```{r}
-# clear workspace
-rm(list = ls())
+#rm(list = ls()) # clear workspace
+
+# Ensure that the working directory is set to the root of the project
+library(rprojroot)
+knitr::opts_knit$set(root.dir = find_rstudio_root_file())
 ```
-
-
-
-### Set Project Working Directory Folders
-
-```{r}
-# Use an environment to store the directory paths
-WD <- new.env()
-
-# SET YOUR LOCAL DIRECTORY LOCATION HERE:
-WD$dir <- "C:/Users/TJ McMote/ASU Dropbox/Rudolf Cesaretti/GitHubRepos/TudorEnglandUrbanScaling/"
-# Adjust the directory path as per your system
-
-# Creating subdirectories using paste0 function
-WD$analysis <- paste0(WD$dir, "analysis/")
-WD$data_r <- paste0(WD$dir, "data/raw/")
-WD$data_p <- paste0(WD$dir, "data/processed/")
-WD$figs <- paste0(WD$dir, "figures/")
-WD$funcs <- paste0(WD$dir, "R/")
-```
-
-
-
-
-### Load Custom R Functions
-
-```{r}
-#Read in custom R functions located in the WD$R directory folder
-
-# Custom function R file names
-functions <- c("linear_rescale.R", "ks_test_tidy.R", "histogram_density.R", 
-               "plot_ks_ci.R", "gg_histogram_density.R", "ggplot_ks_ci.R",
-               "regression_analysis.R") 
-
-invisible(lapply(functions, function(filename) {
-  source(file.path(WD$funcs, filename))
-}))
-
-rm(functions) # Remove the vector of function filenames from the environment
-```
-
-
-
 
 
 ### Load Required Packages
@@ -95,19 +53,40 @@ rm(required_pkgs, to_install)
 ```
 
 
+
+### Load Custom R Functions
+
+```{r}
+#Read in custom R functions located in the WD$R directory folder
+
+# Custom function R file names
+functions <- c("linear_rescale.R", "ks_test_tidy.R", "histogram_density.R", 
+               "plot_ks_ci.R", "gg_histogram_density.R", "ggplot_ks_ci.R",
+               "regression_analysis.R") 
+
+invisible(lapply(functions, function(filename) {
+  source(file.path(WD$funcs, filename))
+}))
+
+rm(functions) # Remove the vector of function filenames from the environment
+```
+
+
+
+
 ### Load Data
 
 ```{r}
 # Upload datasets from working directory
-main_dataset <- read.csv(file = paste0(WD$data_r, "main_dataset.csv"), header=TRUE, sep=",")
+main_dataset <- read.csv(file = "data/raw/main_dataset.csv", header=TRUE, sep=",")
 
-add_taxpayers <- read.csv(file = paste0(WD$data_r, "add_taxpayers.csv"), header=TRUE, sep=",")
+add_taxpayers <- read.csv(file = "data/raw/add_taxpayers.csv", header=TRUE, sep=",")
 
-worst_case_scenarios <- read.csv(file = paste0(WD$data_r, "worst_case_scenarios.csv"), header=TRUE, sep=",")
+worst_case_scenarios <- read.csv(file = "data/raw/worst_case_scenarios.csv", header=TRUE, sep=",")
 
-resid_coords_geog <- read.csv(file = paste0(WD$data_r, "resid_coords_geog.csv"), header = TRUE, sep=",")
+resid_coords_geog <- read.csv(file = "data/raw/resid_coords_geog.csv", header = TRUE, sep=",")
 
-tudor_counties <- read.csv(file = paste0(WD$data_r, "tudor_counties.csv"), header=TRUE, sep=",")
+tudor_counties <- read.csv(file = "data/raw/tudor_counties.csv", header=TRUE, sep=",")
 
 ```
 
@@ -127,7 +106,7 @@ tudor_counties <- read.csv(file = paste0(WD$data_r, "tudor_counties.csv"), heade
 ```{r}
 # Define output file
 png(
-  filename = paste0(WD$figs, "Fig_A1_Hists.png"),
+  filename = "figures/Fig_A1_Hists.png",
   width = 9,
   height = 4,
   units = "in",
@@ -173,8 +152,7 @@ par(mfrow = c(1, 1))
 
 ```{r}
 
-knitr::include_graphics(paste0(WD$figs, "Fig_A1_Hists.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
+knitr::include_graphics("figures/Fig_A1_Hists.png")
 
 x <- ks_test_tidy(main_dataset, "Log_Tax", signif_digits = 3)
 knitr::kable(x, caption = "Kolmogorov-Smirnov test for Log Tax data (n = 93)")
@@ -192,7 +170,7 @@ rm(x,y)
 ```{r}
 # Define output file
 png(
-  filename = paste0(WD$figs, "Fig_A2_KS.png"),
+  filename = "figures/Fig_A2_KS.png",
   width = 8,
   height = 4,
   units = "in",
@@ -230,8 +208,7 @@ dev.off()
 # Reset plotting parameters
 par(mfrow = c(1, 1))
 
-knitr::include_graphics(paste0(WD$figs, "Fig_A2_KS.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
+knitr::include_graphics("figures/Fig_A2_KS.png")
 
 ```
 
@@ -243,7 +220,7 @@ knitr::include_graphics(paste0(WD$figs, "Fig_A2_KS.png"),
 ```{r}
 
 png(
-  filename = paste0(WD$figs, "Fig_A3_Zipf.png"),
+  filename = "figures/Fig_A3_Zipf.png",
   width = 5,
   height = 5,
   units = "in",
@@ -282,8 +259,7 @@ text(3,
 dev.off()
 
 
-knitr::include_graphics(paste0(WD$figs, "Fig_A3_Zipf.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
+knitr::include_graphics("figures/Fig_A3_Zipf.png")
 ```
 
 
@@ -294,7 +270,7 @@ knitr::include_graphics(paste0(WD$figs, "Fig_A3_Zipf.png"),
 
 # Define output file
 png(
-  filename = paste0(WD$figs, "Fig_A4_HistKS.png"),
+  filename = "figures/Fig_A4_HistKS.png",
   width = 8.5,
   height = 4,
   units = "in",
@@ -340,8 +316,7 @@ par(mfrow = c(1, 1))
 
 ```{r}
 
-knitr::include_graphics(paste0(WD$figs, "Fig_A4_HistKS.png"), 
-                        rel_path = getOption("knitr.graphics.rel_path", FALSE))
+knitr::include_graphics("figures/Fig_A4_HistKS.png")
 
 x <- ks_test_tidy(add_taxpayers, "Log_Taxpayers", signif_digits = 3)
 knitr::kable(x, caption = "Kolmogorov-Smirnov test for Log Taxpayers (n = 134) using expanded sample of towns with at least 50 taxpayers")
@@ -417,7 +392,7 @@ write.csv(Table1, file = paste0(WD$data_p, "Scaling_Results_Table_Output.csv"))
 ```{r}
 
 png(
-  filename = paste0(WD$figs, "Fig_1_ScalingPlot.png"),
+  filename = "figures/Fig_1_ScalingPlot.png",
   width = 6,
   height = 6,
   units = "in",
@@ -523,7 +498,7 @@ ks.test(fm.resid, "pnorm",fit[1],fit[2])
 ```{r}
 # Define output file
 png(
-  filename = paste0(WD$figs, "Residuals_Gaussian_distrib.png"),
+  filename = "figures/Residuals_Gaussian_distrib.png",
   width = 9,
   height = 5,
   units = "in",
@@ -1066,3 +1041,18 @@ fm <- lm(tudor_counties$MaxLogResid ~ tudor_counties$Tax1524.5 + tudor_counties$
 summary(fm)
 ```
 
+# NOT YET USED/PLACED
+
+
+
+
+```{r}
+main_dataset$Log_Tax
+library(ggplot2)
+ggKSCI(main_dataset$Log_Tax)
+gg_plot_ks_ci(main_dataset$Log_Tax)
+ggplot_ks_ci(main_dataset$Log_Tax)
+
+ggplot_ks_ci(main_dataset$Log_Tax)
+
+```
