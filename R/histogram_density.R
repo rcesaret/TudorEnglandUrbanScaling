@@ -9,7 +9,6 @@
 #' @param x_label A character string. The label for the x-axis.
 #' @param y_label A character string. The label for the y-axis.
 #' @param file_name A character string specifying the file path to save the plot, or `NULL` to plot directly.
-#' @param fig_letter A character string. A label for the figure (e.g., "(a)" or "(b)").
 #'
 #' @return If `file_name` is specified, the plot is saved to the file. Otherwise, it is plotted directly.
 #'
@@ -26,14 +25,18 @@
 #'   main_title = "(a)",
 #'   x_label = "Values",
 #'   y_label = "Frequency",
-#'   file_name = NULL, # Plot directly
-#'   fig_letter = "(a)"
+#'   file_name = NULL # Plot directly
 #' )
 #'
 #' @importFrom stats optim
 #' @importFrom MASS fitdistr
 #' @export
-histogram_density <- function(data, breaks, main_title, x_label, y_label, file_name = NULL, fig_letter) {
+histogram_density <- function(data, 
+                              breaks, 
+                              main_title = "Histogram with Density Plot", 
+                              x_label = "Value", 
+                              y_label = "Frequency", 
+                              file_name = NULL) {
   # Validate inputs
   if (!is.numeric(data)) {
     stop("`data` must be a numeric vector.")
@@ -51,6 +54,9 @@ histogram_density <- function(data, breaks, main_title, x_label, y_label, file_n
     png(file_name, width = 800, height = 600)
   }
   
+  # Set graphical parameters to decrease distance of axis titles and labels from plot
+  par(mgp = c(2, 0.75, 0))
+  
   # Plot the histogram
   graphics:::plot.histogram(hist_data, freq = FALSE, col = "gray70", family = "sans",
                             main = main_title, cex.main = 2, font.main = 2, font.lab = 2,
@@ -59,7 +65,7 @@ histogram_density <- function(data, breaks, main_title, x_label, y_label, file_n
   # Add axes and labels
   Axis(side = 2, at = pretty(hist_data$density, n = 6), labels = freq)
   Axis(side = 4, at = pretty(hist_data$density, n = 6), labels = pretty(hist_data$density, n = 6))
-  mtext("Density", side = 4, line = 3, family = "sans", font = 2)
+  mtext("Density", side = 4, line = 1.7, family = "sans", font = 2)
   
   # Overlay density plot and fitted normal curve
   polygon(density(data), col = rgb(0, 0, 1, 0.3))
@@ -67,6 +73,10 @@ histogram_density <- function(data, breaks, main_title, x_label, y_label, file_n
   x_fit <- seq(min(data) - 1, max(data) + 1, length.out = 50)
   y_fit <- dnorm(x_fit, mean = fit["mean"], sd = fit["sd"])
   lines(x_fit, y_fit, col = "red", lwd = 2)
+  
+  # Reset graphical parameters to default
+  par(mgp = c(3, 1, 0))
+  
   
   # Close the graphics device if file_name is specified
   if (!is.null(file_name)) {

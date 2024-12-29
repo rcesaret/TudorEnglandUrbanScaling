@@ -4,10 +4,10 @@
 #' distribution fitted to the data. The plot can be saved to a specified file or 
 #' plotted directly to an active graphics device.
 #'
-#' @param data A numeric vector. The dataset column for which the ECDF plot is generated.
-#' @param main_title A character string. The main title of the plot.
-#' @param x_label A character string. The label for the x-axis.
-#' @param y_label A character string. The label for the y-axis.
+#' @param data A numeric vector for which the ECDF plot is generated.
+#' @param main_title A character string. The main title of the plot. Defaults to "K-S Test for Normality".
+#' @param x_label A character string. The label for the x-axis. Defaults to "X"
+#' @param y_label A character string. The label for the y-axis. Defaults to "ECDF(X)"
 #' @param file_name A character string specifying the file path to save the plot, or `NULL` to plot directly.
 #'
 #' @return If `file_name` is specified, the plot is saved to the file. Otherwise, it is plotted directly.
@@ -19,7 +19,7 @@
 #' # Example usage
 #' set.seed(123)
 #' test_data <- rnorm(100, mean = 5, sd = 1)
-#' ks_ecdf_ci_fit(
+#' plot_ks_ci(
 #'   data = test_data,
 #'   main_title = "(b)",
 #'   x_label = "Values",
@@ -31,7 +31,12 @@
 #' @importFrom NSM3 ecdf.ks.CI
 #' 
 #' @export
-ks_ecdf_ci_fit <- function(data, main_title, x_label, y_label, file_name = NULL) {
+plot_ks_ci <- function(data, 
+                       main_title = "K-S Test for Normality", 
+                       x_label = "X", 
+                       y_label = "ECDF(X)",
+                       file_name = NULL) {
+  
   # Validate inputs
   if (!is.numeric(data)) {
     stop("`data` must be a numeric vector.")
@@ -46,6 +51,9 @@ ks_ecdf_ci_fit <- function(data, main_title, x_label, y_label, file_name = NULL)
     on.exit(dev.off()) # Close the device when finished
   }
   
+  # Set graphical parameters to decrease distance of axis titles and labels from plot
+  par(mgp = c(2, 0.75, 0))
+  
   # Create the ECDF plot without altering global `par` settings
   NSM3::ecdf.ks.CI(data, main = main_title, cex.main = 2, font.main = 2, 
                    font.lab = 2, xlab = x_label, ylab = y_label)
@@ -56,4 +64,7 @@ ks_ecdf_ci_fit <- function(data, main_title, x_label, y_label, file_name = NULL)
   lines(ecdf(norm_samples), do.points = FALSE, verticals = TRUE, col = "blue", lwd = 2)
   
   invisible(NULL)
+  
+  # Reset graphical parameters to default
+  par(mgp = c(3, 1, 0))
 }

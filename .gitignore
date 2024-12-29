@@ -20,9 +20,6 @@
 # RStudio files
 .Rproj.user/
 
-# R Project for repo
-TudorEnglandUrbanScaling.Rproj
-
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
@@ -43,3 +40,7 @@ vignettes/*.pdf
 
 # Original Repository
 ORIG_REPO/
+
+# Subdirectories R/OldFuncDrafts/
+R/OldFuncDrafts/
+analysis/OldDrafts/

@@ -56,7 +56,7 @@ WD$funcs <- paste0(WD$dir, "R/")
 
 # Custom function R file names
 functions <- c("linear_rescale.R", "ks_test_tidy.R", "histogram_density.R", 
-               "ks_ecdf_ci_fit.R", "gg_histogram_density.R", "gg_ks_ecdf_ci_fit.R",
+               "plot_ks_ci.R", "gg_histogram_density.R", "ggplot_ks_ci.R",
                "regression_analysis.R") 
 
 invisible(lapply(functions, function(filename) {
@@ -148,8 +148,7 @@ histogram_density(
   main_title = "(a)",
   x_label = "Log Tax (£)",
   y_label = "Frequency",
-  file_name = NULL, # Plot directly
-  fig_letter = "(a)"
+  file_name = NULL # Plot directly
 )
 
 # Plot Figure A1b
@@ -159,8 +158,7 @@ histogram_density(
   main_title = "(b)",
   x_label = "Log Taxpayers",
   y_label = "Frequency",
-  file_name = NULL, # Plot directly
-  fig_letter = "(b)"
+  file_name = NULL # Plot directly
 )
 
 # Close the png device
@@ -209,7 +207,7 @@ png(
 par(mfrow = c(1, 2))
 
 # Plot Figure A2a
-ks_ecdf_ci_fit(
+plot_ks_ci(
   data = main_dataset$Log_Tax,
   main_title = "(a)",
   x_label = "Log Tax (£)",
@@ -218,7 +216,7 @@ ks_ecdf_ci_fit(
 )
 
 # Plot Figure A2b
-ks_ecdf_ci_fit(
+plot_ks_ci(
   data = main_dataset$Log_Taxpayers,
   main_title = "(b)",
   x_label = "Log Taxpayers",
@@ -317,12 +315,11 @@ histogram_density(
   main_title = "(a)",
   x_label = "Log Taxpayers",
   y_label = "Frequency",
-  file_name = NULL, # Do not save individual files
-  fig_letter = "(a)"
+  file_name = NULL # Do not save individual files
 )
 
 # Plot Figure A4b (ECDF with Normal Overlay)
-ks_ecdf_ci_fit(
+plot_ks_ci(
   data = add_taxpayers$Log_Taxpayers,
   main_title = "(b)",
   x_label = "Log Taxpayers",
@@ -420,7 +417,7 @@ write.csv(Table1, file = paste0(WD$data_p, "Scaling_Results_Table_Output.csv"))
 ```{r}
 
 png(
-  filename = "Fig_1_ScalingPlot.png",
+  filename = paste0(WD$figs, "Fig_1_ScalingPlot.png"),
   width = 6,
   height = 6,
   units = "in",
@@ -547,12 +544,12 @@ histogram_density(
   main_title = "(a)",
   x_label = "Residuals",
   y_label = "Frequency",
-  file_name = NULL, # Do not save individual files
-  fig_letter = "(a)"
+  file_name = NULL # Do not save individual files
+  
 )
 
 # Plot ECDF of Residuals (ECDF with Normal Overlay)
-ks_ecdf_ci_fit(
+plot_ks_ci(
   data = fm.resid,
   main_title = "(b)",
   x_label = "Residuals",

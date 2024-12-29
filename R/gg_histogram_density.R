@@ -36,20 +36,35 @@ gg_histogram_density <- function(data, bins = 30, x_label = "X-axis", y_label = 
                                  main_title = "Histogram with Density", 
                                  fill_color = "gray70", density_color = "blue", line_color = "red") {
   # Validate inputs
-  if (!is.numeric(data)) {
-    stop("`data` must be a numeric vector.")
+  if (!is.numeric(data) || length(data) == 0) {
+    stop("`data` must be a non-empty numeric vector.")
+  }
+  if (!is.numeric(bins) || bins <= 0) {
+    stop("`bins` must be a positive integer.")
   }
   
-  # Fit normal distribution
+  # Fit normal distribution to the data
   fit <- MASS::fitdistr(data, "normal")$estimate
   
-  # Create ggplot
+  # Generate a sequence for the normal distribution curve
+  x_seq <- seq(min(data), max(data), length.out = 100)
+  
+  # Create a data frame for the fitted line
+  line_data <- data.frame(
+    x = x_seq, 
+    y = dnorm(x_seq, mean = fit["mean"], sd = fit["sd"])
+  )
+  
+  # Create the ggplot object
   p <- ggplot(data = data.frame(x = data), aes(x = x)) +
+    # Add histogram with density scaling
     geom_histogram(aes(y = ..density..), bins = bins, fill = fill_color, color = "black", alpha = 0.7) +
+    # Overlay density plot
     geom_density(color = density_color, fill = density_color, alpha = 0.3) +
-    geom_line(aes(x = seq(min(data), max(data), length.out = 100), 
-                  y = dnorm(seq(min(data), max(data), length.out = 100), mean = fit[1], sd = fit[2])),
-              color = line_color, size = 1) +
+    # Add fitted normal distribution line
+    geom_line(data = line_data, aes(x = x, y = y),
+              color = line_color, linewidth = 1) +  # Changed 'size' to 'linewidth'
+    # Add labels and theme
     labs(title = main_title, x = x_label, y = y_label) +
     theme_minimal() +
     theme(
